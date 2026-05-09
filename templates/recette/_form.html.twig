@@ -1,0 +1,183 @@
+{{ form_start(form) }}
+
+<div class="card border-0 shadow-lg rounded-4">
+
+    <div class="card-body p-5">
+
+        <div class="row g-4">
+
+            {# ================= BASIC INFO ================= #}
+
+            <div class="col-md-12">
+                {{ form_label(form.titre, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.titre, {'attr': {'class': 'form-control form-control-lg'}}) }}
+            </div>
+
+            <div class="col-md-12">
+                {{ form_label(form.description, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 3}}) }}
+            </div>
+
+            <div class="col-md-12">
+                {{ form_label(form.instructions, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.instructions, {'attr': {'class': 'form-control', 'rows': 8}}) }}
+            </div>
+
+            {# ================= TIMES ================= #}
+
+            <div class="col-md-4">
+                {{ form_label(form.tempsPreparation) }}
+                {{ form_widget(form.tempsPreparation, {'attr': {'class': 'form-control'}}) }}
+            </div>
+
+            <div class="col-md-4">
+                {{ form_label(form.tempsCuisson) }}
+                {{ form_widget(form.tempsCuisson, {'attr': {'class': 'form-control'}}) }}
+            </div>
+
+            <div class="col-md-4">
+                {{ form_label(form.nbPersonnes) }}
+                {{ form_widget(form.nbPersonnes, {'attr': {'class': 'form-control'}}) }}
+            </div>
+
+            {# ================= CATEGORY + DIFFICULTY ================= #}
+
+            <div class="col-md-6">
+                {{ form_label(form.difficulte) }}
+                {{ form_widget(form.difficulte, {'attr': {'class': 'form-select'}}) }}
+            </div>
+
+            <div class="col-md-6">
+                {{ form_label(form.categorie) }}
+                <div class="input-group">
+                    <span class="input-group-text">{{ form.categorie.vars.data.icone is defined and form.categorie.vars.data ? form.categorie.vars.data.icone|default('📂') : '📂' }}</span>
+                    {{ form_widget(form.categorie, {'attr': {'class': 'form-select'}}) }}
+                </div>
+            </div>
+
+            {# ================= TAGS ================= #}
+
+            <div class="col-md-12">
+                <label class="form-label fw-semibold">🏷️ Tags</label>
+
+                <div class="d-flex flex-wrap gap-2">
+                    {% for child in form.tags %}
+                        <div class="form-check form-check-inline">
+                            {{ form_widget(child, {'attr': {'class': 'form-check-input'}}) }}
+                            {{ form_label(child, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {{ form_errors(form.tags) }}
+            </div>
+
+            {# ================= INGREDIENTS (NEW) ================= #}
+
+            <div class="col-md-12">
+
+                <h5 class="fw-bold">🥕 Ingrédients</h5>
+
+                <div id="ingredients-list"
+                     data-prototype="{{ form_widget(form.ingredients.vars.prototype)|e('html_attr') }}">
+
+                    {% for ingredientForm in form.ingredients %}
+
+                        <div class="ingredient-item card p-3 mb-2">
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form_row(ingredientForm.nom) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_row(ingredientForm.quantite) }}
+                                </div>
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+                <button type="button"
+                        class="btn btn-outline-success mt-2"
+                        id="add-ingredient">
+                    + Ajouter un ingrédient
+                </button>
+
+            </div>
+
+            {# ================= IMAGE ================= #}
+
+            <div class="col-md-12">
+                {{ form_label(form.imageFile) }}
+                {{ form_widget(form.imageFile, {'attr': {'class': 'form-control'}}) }}
+
+                {% if form.vars.data.imageName %}
+                    <div class="mt-2">
+                        <img src="{{ asset('uploads/recettes/' ~ form.vars.data.imageName) }}"
+                             style="height: 100px; border-radius: 8px;">
+                        <small class="text-muted d-block">Image actuelle</small>
+                    </div>
+                {% endif %}
+            </div>
+
+            {# ================= PUBLISH ================= #}
+
+            <div class="col-md-12">
+                <div class="form-check form-switch">
+                    {{ form_widget(form.publiee, {'attr': {'class': 'form-check-input'}}) }}
+                    {{ form_label(form.publiee) }}
+                </div>
+            </div>
+
+        </div>
+
+        {# ================= BUTTONS ================= #}
+
+        <div class="mt-5 d-flex gap-3">
+
+            <button class="btn btn-primary btn-lg">
+                Enregistrer
+            </button>
+
+            <a href="{{ path('app_recette_index') }}" class="btn btn-dark btn-lg">
+                Retour
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{{ form_end(form) }}
+
+{# ================= JS INGREDIENTS ================= #}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const container = document.getElementById('ingredients-list');
+    const addBtn = document.getElementById('add-ingredient');
+
+    let index = container.children.length;
+
+    addBtn.addEventListener('click', function () {
+
+        const prototype = container.dataset.prototype;
+
+        const newForm = prototype.replace(/__name__/g, index);
+
+        const div = document.createElement('div');
+        div.classList.add('ingredient-item', 'card', 'p-3', 'mb-2');
+        div.innerHTML = newForm;
+
+        container.appendChild(div);
+
+        index++;
+    });
+
+});
+</script>

@@ -1,0 +1,32 @@
+{{ form_start(form) }}
+
+<div class="card border-0 shadow-lg rounded-4">
+    <div class="card-body p-5">
+        <div class="row g-4">
+            <div class="col-md-12">
+                {{ form_label(form.nom, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.nom, {'attr': {'class': 'form-control form-control-lg'}}) }}
+            </div>
+            <div class="col-md-6">
+                {{ form_label(form.icone, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.icone, {'attr': {'class': 'form-control'}}) }}
+                <small class="text-muted">Entrez un emoji représentant la catégorie</small>
+            </div>
+            <div class="col-md-12">
+                {{ form_label(form.description, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 3}}) }}
+            </div>
+        </div>
+        <div class="mt-5 d-flex gap-3">
+            <button class="btn btn-main btn-lg">
+                <i class="bi bi-check-circle"></i>
+                {{ button_label|default('Enregistrer') }}
+            </button>
+            <a href="{{ path('app_categorie_recette_index') }}" class="btn btn-dark btn-lg">
+                Retour
+            </a>
+        </div>
+    </div>
+</div>
+
+{{ form_end(form) }}

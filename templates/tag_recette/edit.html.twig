@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Tag{% endblock %}
+
+{% block body %}
+
+<h1>✏️ Edit Tag</h1>
+
+<div class="card p-4 shadow-sm">
+    {{ include('tag_recette/_form.html.twig') }}
+</div>
+
+{{ include('tag_recette/_delete_form.html.twig') }}
+
+<a href="{{ path('app_tag_recette_index') }}">← back</a>
+
+{% endblock %}

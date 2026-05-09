@@ -1,0 +1,138 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            {% if recette.imageName %}
+                <div class="mb-4">
+                    <img src="{{ asset('uploads/recettes/' ~ recette.imageName) }}"
+                         class="img-fluid rounded-4 w-100"
+                         alt="{{ recette.titre }}"
+                         style="height: 400px; object-fit: cover;">
+                </div>
+            {% else %}
+                <div class="d-flex align-items-center justify-content-center bg-light rounded-4 mb-4"
+                     style="height: 400px; font-size: 6rem;">
+                    {{ recette.categorie.icone ?: '🍽' }}
+                </div>
+            {% endif %}
+
+            <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+                <h1 class="fw-bold mb-0">{{ recette.titre }}</h1>
+                {% if recette.publiee %}
+                    <span class="badge bg-success fs-6"><i class="bi bi-check-circle"></i> Publiée</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark fs-6"><i class="bi bi-pencil"></i> Brouillon</span>
+                {% endif %}
+            </div>
+            <h3>🥕 Ingrédients</h3>
+
+<ul class="list-group mb-4">
+
+    {% for ingredient in recette.ingredients %}
+
+        <li class="list-group-item d-flex justify-content-between">
+
+            <span>{{ ingredient.nom }}</span>
+
+            <strong>{{ ingredient.quantite }}</strong>
+
+        </li>
+
+    {% endfor %}
+
+</ul>
+
+            <div class="d-flex align-items-center gap-3 mb-4 text-muted">
+                <span>{{ recette.categorie.icone ?: '📂' }} {{ recette.categorie.nom }}</span>
+                {% if recette.auteur %}
+                    <span><i class="bi bi-person"></i> {{ recette.auteur.pseudo }}</span>
+                {% endif %}
+            </div>
+
+            {% if recette.tags is not empty %}
+                <div class="mb-4 d-flex flex-wrap gap-2">
+                    {% for tag in recette.tags %}
+                        <span class="badge fs-6 px-3 py-2"
+                              style="background-color: {{ tag.couleur }}; color: #fff;">
+                            {{ tag.nom }}
+                        </span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="bg-light p-3 rounded-4 text-center">
+                        <p class="mb-0 text-muted small">Préparation</p>
+                        <strong>{{ recette.tempsPreparation }} min</strong>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="bg-light p-3 rounded-4 text-center">
+                        <p class="mb-0 text-muted small">Cuisson</p>
+                        <strong>{{ recette.tempsCuisson ?: '—' }} min</strong>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="bg-light p-3 rounded-4 text-center">
+                        <p class="mb-0 text-muted small">Personnes</p>
+                        <strong>{{ recette.nbPersonnes }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-muted mb-4">{{ recette.description }}</p>
+
+            <h3 class="fw-bold mb-3">
+                <i class="bi bi-list-check"></i> Instructions
+            </h3>
+
+            <div class="bg-light p-4 rounded-4 mb-4">
+                {{ recette.instructions|nl2br }}
+            </div>
+
+            <div class="d-flex gap-3 mt-4 flex-wrap">
+                {% if app.user %}
+                    <form method="post" action="{{ path('app_favorite_add', {'recetteId': recette.id}) }}" style="display:inline-block">
+                        <button class="btn btn-outline-warning">
+                            <i class="bi bi-star"></i> Ajouter aux favoris
+                        </button>
+                    </form>
+                {% endif %}
+
+                {% if is_granted('edit', recette) %}
+                    <a href="{{ path('app_recette_edit', {'id': recette.id}) }}" class="btn btn-warning">
+                        <i class="bi bi-pencil-square"></i> Modifier
+                    </a>
+                {% endif %}
+
+                {% if is_granted('publish', recette) and not recette.publiee %}
+                    <form method="post" action="{{ path('app_recette_publish', {'id': recette.id}) }}" style="display:inline-block">
+                        <input type="hidden" name="_token" value="{{ csrf_token('publish' ~ recette.id) }}">
+                        <button class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Publier
+                        </button>
+                    </form>
+                {% endif %}
+
+                {% if is_granted('unpublish', recette) and recette.publiee %}
+                    <form method="post" action="{{ path('app_recette_unpublish', {'id': recette.id}) }}" style="display:inline-block">
+                        <input type="hidden" name="_token" value="{{ csrf_token('unpublish' ~ recette.id) }}">
+                        <button class="btn btn-secondary">
+                            <i class="bi bi-archive"></i> Mettre en brouillon
+                        </button>
+                    </form>
+                {% endif %}
+
+                <a href="{{ path('app_recette_index') }}" class="btn btn-dark">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}

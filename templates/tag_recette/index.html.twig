@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tags{% endblock %}
+
+{% block body %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>🏷️ Tags</h1>
+
+    <a class="btn btn-primary" href="{{ path('app_tag_recette_new') }}">
+        + Nouveau Tag
+    </a>
+</div>
+
+<div class="row">
+
+    {% for tag in tag_recettes %}
+
+        <div class="col-md-3 mb-3">
+
+            <div class="card shadow-sm text-center">
+
+                <div class="card-body">
+
+                    <span class="badge"
+                          style="background-color: {{ tag.couleur }}; font-size: 14px;">
+                        {{ tag.nom }}
+                    </span>
+
+                    <div class="mt-3">
+                        <a href="{{ path('app_tag_recette_edit', {'id': tag.id}) }}"
+                           class="btn btn-sm btn-warning">
+                            Edit
+                        </a>
+
+                        {{ include('tag_recette/_delete_form.html.twig', {tag_recette: tag}) }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    {% else %}
+
+        <p>No tags found.</p>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

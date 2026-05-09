@@ -1,24 +1,292 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}RecipeHub{% endblock %}</title>
 
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-        {% endblock %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
-        {% if frankenphpHotReload %}
-        <meta name="frankenphp-hot-reload:url" content="{{ frankenphpHotReload }}">
-        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
-        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
-        {% endif %}
-    </head>
-    <body>
+    {# Bootstrap #}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    {# Bootstrap Icons #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    {# Google Font #}
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        *{
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body{
+            background-color: #f8f9fa;
+            color: #222;
+        }
+
+        .navbar{
+            background: linear-gradient(to right, #111827, #1f2937);
+            padding: 15px 0;
+        }
+
+        .navbar-brand{
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #ffb703 !important;
+        }
+
+        .nav-link{
+            color: white !important;
+            margin-left: 15px;
+            transition: 0.3s;
+        }
+
+        .nav-link:hover{
+            color: #ffb703 !important;
+        }
+
+        .hero{
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+                        url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1400');
+            background-size: cover;
+            background-position: center;
+            height: 350px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+
+            color: white;
+        }
+
+        .hero h1{
+            font-size: 3rem;
+            font-weight: 700;
+        }
+
+        .hero p{
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .section-title{
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #111827;
+        }
+
+        .recipe-card{
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            background: white;
+        }
+
+        .recipe-card:hover{
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .recipe-card img{
+            height: 220px;
+            object-fit: cover;
+        }
+
+        .recipe-card .card-body{
+            padding: 20px;
+        }
+
+        .recipe-title{
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .recipe-meta{
+            font-size: 0.9rem;
+            color: gray;
+        }
+
+        .badge-difficulty{
+            background-color: #ffb703;
+            color: black;
+            font-weight: 500;
+        }
+
+        footer{
+            background-color: #111827;
+            color: white;
+            padding: 30px 0;
+            margin-top: 60px;
+        }
+
+        .btn-main{
+            background-color: #ffb703;
+            border: none;
+            color: black;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-main:hover{
+            background-color: #fb8500;
+            color: white;
+        }
+    </style>
+
+    {% block stylesheets %}{% endblock %}
+</head>
+
+<body>
+
+    {# NAVBAR #}
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+
+            <a class="navbar-brand" href="{{ path('app_recette_index') }}">
+                <i class="bi bi-fire"></i> RecipeHub
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+
+                <ul class="navbar-nav ms-auto">
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_recette_index') }}">
+                            <i class="bi bi-house-door"></i> Acceuil
+                        </a>
+                    </li>
+
+                    {% if is_granted('ROLE_ADMIN') %}
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_recette_drafts') }}">
+                                <i class="bi bi-pencil"></i> Brouillons
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_categorie_recette_index') }}">
+                                <i class="bi bi-tags"></i> Catégories
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_tag_recette_index') }}">
+                                <i class="bi bi-bookmark"></i> Tags
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_admin_users') }}">
+                                <i class="bi bi-people"></i> Utilisateurs
+                            </a>
+                        </li>
+
+                    {% elseif is_granted('ROLE_CUISINIER') %}
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_recette_mes_recettes') }}">
+                                <i class="bi bi-journal-richtext"></i> Mes recettes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_recette_drafts') }}">
+                                <i class="bi bi-pencil"></i> Mes brouillons
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_recette_new') }}">
+                                <i class="bi bi-plus-circle"></i> Nouvelle recette
+                            </a>
+                        </li>
+
+                    {% endif %}
+
+                    {% if app.user %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_favorite_index') }}">
+                            <i class="bi bi-star-fill text-warning"></i> Favoris
+                            {% set favCount = app.session.get('favorites')|length %}
+                            {% if favCount > 0 %}
+                                <span class="badge bg-warning text-dark">{{ favCount }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if app.user %}
+                        <li class="nav-item">
+                            <span class="nav-link text-white">
+                                <i class="bi bi-person-circle"></i> {{ app.user.pseudo }}
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_logout') }}">
+                                <i class="bi bi-box-arrow-right"></i> Déconnexion
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_login') }}">
+                                <i class="bi bi-box-arrow-in-right"></i> Connexion
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_register') }}">
+                                <i class="bi bi-person-plus"></i> Inscription
+                            </a>
+                        </li>
+                    {% endif %}
+
+                </ul>
+
+            </div>
+
+        </div>
+    </nav>
+
+    {# HERO #}
+    <section class="hero">
+        <div>
+            <h1>Bienvenue sur RecipeHub</h1>
+            <p>Découvrez et partagez les meilleures recettes du monde.</p>
+        </div>
+    </section>
+
+    {# MAIN CONTENT #}
+    <main class="container py-5">
+
         {% block body %}{% endblock %}
-    </body>
+
+    </main>
+
+    {# FOOTER #}
+    <footer>
+        <div class="container text-center">
+
+            <h5 class="mb-3">RecipeHub</h5>
+
+            <p>
+                Projet Symfony de partage de recettes culinaires.
+            </p>
+
+            <small>
+                © 2026 - Tous droits réservés
+            </small>
+
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% block javascripts %}{% endblock %}
+
+</body>
 </html>
