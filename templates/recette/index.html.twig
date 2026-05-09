@@ -29,6 +29,40 @@
     {% endif %}
 </div>
 
+<form method="get" class="row g-2 mb-4 p-3 bg-white rounded shadow-sm">
+    <div class="col-md-4">
+        <input type="text" name="titre" class="form-control" placeholder="Rechercher par titre..." value="{{ app.request.query.get('titre') }}">
+    </div>
+    <div class="col-md-3">
+        <select name="categorie" class="form-select">
+            <option value="">Toutes les catégories</option>
+            {% for cat in categories %}
+                <option value="{{ cat.id }}" {{ app.request.query.get('categorie') == cat.id ? 'selected' : '' }}>{{ cat.nom }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="difficulte" class="form-select">
+            <option value="">Difficulté</option>
+            <option value="Facile" {{ app.request.query.get('difficulte') == 'Facile' ? 'selected' : '' }}>Facile</option>
+            <option value="Moyen" {{ app.request.query.get('difficulte') == 'Moyen' ? 'selected' : '' }}>Moyen</option>
+            <option value="Difficile" {{ app.request.query.get('difficulte') == 'Difficile' ? 'selected' : '' }}>Difficile</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="tag" class="form-select">
+            <option value="">Tous les tags</option>
+            {% for t in tags %}
+                <option value="{{ t.id }}" {{ app.request.query.get('tag') == t.id ? 'selected' : '' }}>{{ t.nom }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-1 d-flex gap-1">
+        <button type="submit" class="btn btn-main w-100"><i class="bi bi-search"></i></button>
+        <a href="{{ path(app.request.attributes.get('_route')) }}" class="btn btn-outline-secondary w-100"><i class="bi bi-x-lg"></i></a>
+    </div>
+</form>
+
 <div class="row g-4">
     {% for recette in recettes %}
         <div class="col-md-6 col-lg-4">
@@ -48,11 +82,11 @@
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <div class="d-flex gap-1 flex-wrap">
-                            <span class="badge badge-difficulty">{{ recette.difficulte }}</span>
+                            <span class="badge badge-difficulty">{{ difficulty_stars(recette.difficulte) }}</span>
                             <span class="badge bg-success"><i class="bi bi-check-circle"></i> Publiée</span>
                         </div>
                         <small class="recipe-meta">
-                            <i class="bi bi-clock"></i> {{ recette.tempsPreparation }} min
+                            <i class="bi bi-clock"></i> {{ recette.tempsPreparation|cooking_time_format }}
                         </small>
                     </div>
 
@@ -82,6 +116,9 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="recipe-meta">
                                 <i class="bi bi-people"></i> {{ recette.nbPersonnes }} personnes
+                            </small>
+                            <small class="recipe-meta">
+                                <i class="bi bi-clock-history"></i> {{ recette.dateCreation|time_ago }}
                             </small>
                             <div class="d-flex gap-2">
                                 <a href="{{ path('app_recette_show', {'id': recette.id}) }}"
