@@ -1,0 +1,113 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes brouillons{% endblock %}
+
+{% block body %}
+
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <div>
+        <h2 class="section-title mb-1">
+            <i class="bi bi-pencil"></i>
+            Mes brouillons
+        </h2>
+        <p class="text-muted">Gérez vos recettes non publiées.</p>
+    </div>
+    <a href="{{ path('app_recette_new') }}" class="btn btn-main">
+        <i class="bi bi-plus-circle"></i> Nouvelle recette
+    </a>
+</div>
+
+{% for message in app.flashes('success') %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i> {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+{% endfor %}
+
+<div class="row g-4">
+    {% for recette in recettes %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card recipe-card h-100 border-warning border-opacity-25">
+                <div class="position-relative">
+                    {% if recette.imageName %}
+                        <img src="{{ asset('uploads/recettes/' ~ recette.imageName) }}"
+                             class="card-img-top"
+                             alt="{{ recette.titre }}"
+                             style="height: 220px; object-fit: cover; filter: grayscale(0.3);">
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-center bg-light"
+                             style="height: 220px; font-size: 4rem; filter: grayscale(0.3);">
+                            {{ recette.categorie.icone ?: '🍽' }}
+                        </div>
+                    {% endif %}
+                    <span class="position-absolute top-0 end-0 m-2 badge bg-warning text-dark">
+                        <i class="bi bi-pencil"></i> Brouillon
+                    </span>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge badge-difficulty">{{ recette.difficulte }}</span>
+                        <small class="recipe-meta">
+                            <i class="bi bi-calendar"></i> {{ recette.dateCreation|date('d/m/Y') }}
+                        </small>
+                    </div>
+
+                    <h5 class="recipe-title">{{ recette.titre }}</h5>
+
+                    <div class="mb-1">
+                        <small class="text-muted">
+                            {{ recette.categorie.icone ?: '📂' }} {{ recette.categorie.nom }}
+                        </small>
+                    </div>
+
+                    {% if recette.tags is not empty %}
+                        <div class="mb-2 d-flex flex-wrap gap-1">
+                            {% for tag in recette.tags %}
+                                <span class="badge" style="background-color: {{ tag.couleur }}; color: #fff;">
+                                    {{ tag.nom }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <p class="text-muted small">{{ recette.description|slice(0, 100) }}...</p>
+
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="recipe-meta"><i class="bi bi-tag"></i> {{ recette.categorie.nom }}</small>
+                            <div class="d-flex gap-2">
+                                <form method="post" action="{{ path('app_recette_publish', {'id': recette.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('publish' ~ recette.id) }}">
+                                    <button class="btn btn-sm btn-success">
+                                        <i class="bi bi-check-circle"></i> Publier
+                                    </button>
+                                </form>
+                                <a href="{{ path('app_recette_show', {'id': recette.id}) }}" class="btn btn-sm btn-dark">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12">
+            <div class="alert alert-info text-center p-5">
+                <h4><i class="bi bi-inbox"></i> Aucun brouillon</h4>
+                <p>Vous n'avez aucune recette en brouillon.</p>
+                <a href="{{ path('app_recette_new') }}" class="btn btn-main">
+                    <i class="bi bi-plus-circle"></i> Créer une recette
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="mt-4">
+    <a href="{{ path('app_recette_index') }}" class="btn btn-dark">
+        <i class="bi bi-arrow-left"></i> Voir les recettes publiées
+    </a>
+</div>
+
+{% endblock %}

@@ -1,4 +1,45 @@
 {{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
+
+<div class="card border-0 shadow-lg rounded-4">
+    <div class="card-body p-5">
+        <div class="row g-4">
+            <div class="col-md-12">
+                {{ form_label(form.nom, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.nom, {'attr': {'class': 'form-control form-control-lg'}}) }}
+            </div>
+            <div class="col-md-6">
+                {{ form_label(form.couleur, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                <div class="d-flex align-items-center gap-3">
+                    {{ form_widget(form.couleur, {'attr': {'class': 'form-control form-control-color', 'style': 'width: 60px; height: 50px; cursor: pointer;'}}) }}
+                    <span id="colorPreview" class="badge fs-6 px-4 py-2" style="background-color: {{ form.vars.data.couleur|default('#6c757d') }}; color: #fff;">
+                        {{ form.vars.data.nom|default('Aperçu') }}
+                    </span>
+                </div>
+                <small class="text-muted">Choisissez une couleur pour ce tag</small>
+            </div>
+        </div>
+        <div class="mt-5 d-flex gap-3">
+            <button class="btn btn-main btn-lg">
+                <i class="bi bi-check-circle"></i>
+                {{ button_label|default('Enregistrer') }}
+            </button>
+            <a href="{{ path('app_tag_recette_index') }}" class="btn btn-dark btn-lg">
+                Retour
+            </a>
+        </div>
+    </div>
+</div>
+
 {{ form_end(form) }}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const colorInput = document.querySelector('input[type="color"]');
+    const preview = document.getElementById('colorPreview');
+    if (colorInput && preview) {
+        colorInput.addEventListener('input', function () {
+            preview.style.backgroundColor = this.value;
+        });
+    }
+});
+</script>

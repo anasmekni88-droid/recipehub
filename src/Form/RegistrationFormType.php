@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -41,6 +42,17 @@ class RegistrationFormType extends AbstractType
                     new NotBlank(message: 'L\'email est obligatoire'),
                     new Email(message: 'Email invalide')
                 ]
+            ])
+
+            // 👤 ROLE
+            ->add('role', ChoiceType::class, [
+                'mapped' => false,
+                'label' => 'Type de compte',
+                'choices' => [
+                    'Utilisateur' => 'ROLE_USER',
+                    'Chef cuisinier' => 'ROLE_CUISINIER',
+                ],
+                'expanded' => true,
             ])
 
             // 🔐 PASSWORD

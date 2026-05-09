@@ -162,22 +162,54 @@
 
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('app_recette_index') }}">
-                            <i class="bi bi-house"></i> Accueil
+                            <i class="bi bi-house-door"></i> Acceuil
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_recette_index') }}">
-                            <i class="bi bi-journal-richtext"></i> Recettes
-                        </a>
-                    </li>
+                    {% if is_granted('ROLE_ADMIN') %}
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_categorie_recette_index') }}">
-                            <i class="bi bi-tags"></i> Catégories
-                        </a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_recette_drafts') }}">
+                                <i class="bi bi-pencil"></i> Brouillons
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_categorie_recette_index') }}">
+                                <i class="bi bi-tags"></i> Catégories
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_tag_recette_index') }}">
+                                <i class="bi bi-bookmark"></i> Tags
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_admin_users') }}">
+                                <i class="bi bi-people"></i> Utilisateurs
+                            </a>
+                        </li>
 
+                    {% elseif is_granted('ROLE_CUISINIER') %}
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_recette_mes_recettes') }}">
+                                <i class="bi bi-journal-richtext"></i> Mes recettes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_recette_drafts') }}">
+                                <i class="bi bi-pencil"></i> Mes brouillons
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_recette_new') }}">
+                                <i class="bi bi-plus-circle"></i> Nouvelle recette
+                            </a>
+                        </li>
+
+                    {% endif %}
+
+                    {% if app.user %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('app_favorite_index') }}">
                             <i class="bi bi-star-fill text-warning"></i> Favoris
@@ -187,6 +219,7 @@
                             {% endif %}
                         </a>
                     </li>
+                    {% endif %}
 
                     {% if app.user %}
                         <li class="nav-item">

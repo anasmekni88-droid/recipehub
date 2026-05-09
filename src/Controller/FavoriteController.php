@@ -11,10 +11,11 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/favori')]
 final class FavoriteController extends AbstractController
 {
-    #[Route('/ajouter/{id}', name: 'app_favorite_add', methods: ['POST'])]
-    public function add(int $id, Request $request, RecetteRepository $recetteRepository): Response
+    #[Route('/ajouter/{recetteId}', name: 'app_favorite_add', methods: ['POST'])]
+    public function add(Request $request, RecetteRepository $recetteRepository): Response
     {
-        $recette = $recetteRepository->find($id);
+        $recetteId = (int) $request->attributes->get('recetteId');
+        $recette = $recetteRepository->find($recetteId);
         if (!$recette) {
             throw $this->createNotFoundException('Recette not found');
         }
@@ -22,24 +23,25 @@ final class FavoriteController extends AbstractController
         $session = $request->getSession();
         $favorites = $session->get('favorites', []);
 
-        if (!in_array($id, $favorites, true)) {
-            $favorites[] = $id;
+        if (!in_array($recetteId, $favorites, true)) {
+            $favorites[] = $recetteId;
             $session->set('favorites', $favorites);
             $this->addFlash('success', 'Recette ajoutée aux favoris');
         } else {
             $this->addFlash('info', 'Cette recette est déjà dans vos favoris');
         }
 
-        return $this->redirectToRoute('app_recette_show', ['id' => $id]);
+        return $this->redirectToRoute('app_recette_show', ['id' => $recetteId]);
     }
 
-    #[Route('/retirer/{id}', name: 'app_favorite_remove', methods: ['POST'])]
-    public function remove(int $id, Request $request): Response
+    #[Route('/retirer/{recetteId}', name: 'app_favorite_remove', methods: ['POST'])]
+    public function remove(Request $request): Response
     {
+        $recetteId = (int) $request->attributes->get('recetteId');
         $session = $request->getSession();
         $favorites = $session->get('favorites', []);
 
-        $favorites = array_filter($favorites, fn(int $fid) => $fid !== $id);
+        $favorites = array_filter($favorites, fn(int $fid) => $fid !== $recetteId);
         $session->set('favorites', array_values($favorites));
 
         $this->addFlash('success', 'Recette retirée des favoris');

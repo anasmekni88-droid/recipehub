@@ -1,15 +1,21 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Tag{% endblock %}
+{% block title %}Nouveau tag{% endblock %}
 
 {% block body %}
 
-<h1>➕ Create Tag</h1>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="mb-5 text-center">
+            <h1 class="fw-bold">
+                <i class="bi bi-plus-circle"></i>
+                Nouveau tag
+            </h1>
+            <p class="text-muted">Créez un nouveau tag pour vos recettes.</p>
+        </div>
 
-<div class="card p-4 shadow-sm">
-    {{ include('tag_recette/_form.html.twig') }}
+        {{ include('tag_recette/_form.html.twig', {button_label: 'Créer le tag'}) }}
+    </div>
 </div>
-
-<a href="{{ path('app_tag_recette_index') }}">← back to list</a>
 
 {% endblock %}

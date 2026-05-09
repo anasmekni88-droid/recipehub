@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\CategorieRecette;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -17,6 +18,22 @@ class CategorieRecetteType extends AbstractType
                 'label' => 'Nom de la catégorie',
                 'attr' => [
                     'placeholder' => 'Ex: Desserts'
+                ]
+            ])
+            ->add('icone', TextType::class, [
+                'label' => 'Icône (emoji)',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => 'Ex: 🍝, 🥗, 🍰',
+                    'maxlength' => 10
+                ]
+            ])
+            ->add('description', TextareaType::class, [
+                'label' => 'Description',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => 'Une brève description de cette catégorie...',
+                    'rows' => 3
                 ]
             ]);
     }

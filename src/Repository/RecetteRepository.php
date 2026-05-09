@@ -16,28 +16,34 @@ class RecetteRepository extends ServiceEntityRepository
         parent::__construct($registry, Recette::class);
     }
 
-//    /**
-//     * @return Recette[] Returns an array of Recette objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('r.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function findPublished(): array
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.publiee = :val')
+            ->setParameter('val', true)
+            ->orderBy('r.dateCreation', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 
-//    public function findOneBySomeField($value): ?Recette
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function findDrafts(): array
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.publiee = :val')
+            ->setParameter('val', false)
+            ->orderBy('r.dateCreation', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findLastPublished(int $limit = 6): array
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.publiee = :val')
+            ->setParameter('val', true)
+            ->orderBy('r.dateCreation', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

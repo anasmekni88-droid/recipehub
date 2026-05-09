@@ -9,6 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Entity\Ingredient;
 
 #[ORM\Entity(repositoryClass: RecetteRepository::class)]
 class Recette
@@ -64,11 +65,54 @@ class Recette
     #[ORM\ManyToMany(targetEntity: TagRecette::class, inversedBy: 'recettes')]
     private Collection $tags;
 
+    /**
+     * @var Collection<int, Ingredient>
+     */
+    #[ORM\OneToMany(
+        mappedBy: 'recette',
+        targetEntity: Ingredient::class,
+        cascade: ['persist'],
+        orphanRemoval: true
+    )]
+    private Collection $ingredients;
+
     public function __construct()
     {
         $this->tags = new ArrayCollection();
+        $this->ingredients = new ArrayCollection();
         $this->dateCreation = new \DateTimeImmutable();
         $this->publiee = false;
+    }
+    /**
+     * @return Collection<int, Ingredient>
+     */
+    public function getIngredients(): Collection
+    {
+        return $this->ingredients;
+    }
+
+    public function addIngredient(Ingredient $ingredient): static
+    {
+        if (!$this->ingredients->contains($ingredient)) {
+
+            $this->ingredients->add($ingredient);
+
+            $ingredient->setRecette($this);
+        }
+
+        return $this;
+    }
+
+    public function removeIngredient(Ingredient $ingredient): static
+    {
+        if ($this->ingredients->removeElement($ingredient)) {
+
+            if ($ingredient->getRecette() === $this) {
+                $ingredient->setRecette(null);
+            }
+        }
+
+        return $this;
     }
 
     public function getId(): ?int

@@ -5,29 +5,44 @@ namespace App\Controller;
 use App\Entity\Recette;
 use App\Form\RecetteType;
 use App\Repository\RecetteRepository;
+use App\Security\Voter\RecetteVoter;
 use App\Service\FileUploader;
+use App\Service\RecetteAnalyser;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/recette')]
 final class RecetteController extends AbstractController
 {
+    public function __construct(
+        private RecetteAnalyser $analyser,
+    ) {}
+
     #[Route(name: 'app_recette_index', methods: ['GET'])]
     public function index(RecetteRepository $recetteRepository): Response
     {
         return $this->render('recette/index.html.twig', [
-            'recettes' => $recetteRepository->findAll(),
+            'recettes' => $recetteRepository->findPublished(),
+        ]);
+    }
+
+    #[Route('/mes-recettes', name: 'app_recette_mes_recettes', methods: ['GET'])]
+    #[IsGranted('ROLE_CUISINIER')]
+    public function mesRecettes(RecetteRepository $recetteRepository): Response
+    {
+        return $this->render('recette/index.html.twig', [
+            'recettes' => $recetteRepository->findBy(['auteur' => $this->getUser(), 'publiee' => true]),
         ]);
     }
 
     #[Route('/new', name: 'app_recette_new', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_CUISINIER')]
     public function new(Request $request, EntityManagerInterface $entityManager, FileUploader $fileUploader): Response
     {
-        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-
         $recette = new Recette();
         $form = $this->createForm(RecetteType::class, $recette);
         $form->handleRequest($request);
@@ -43,7 +58,10 @@ final class RecetteController extends AbstractController
             $entityManager->persist($recette);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_recette_index', [], Response::HTTP_SEE_OTHER);
+            if ($recette->isPubliee()) {
+                return $this->redirectToRoute('app_recette_index', [], Response::HTTP_SEE_OTHER);
+            }
+            return $this->redirectToRoute('app_recette_drafts', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('recette/new.html.twig', [
@@ -52,17 +70,60 @@ final class RecetteController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_recette_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_recette_show', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function show(Recette $recette): Response
     {
+        $this->denyAccessUnlessGranted(RecetteVoter::VIEW, $recette);
+
         return $this->render('recette/show.html.twig', [
             'recette' => $recette,
         ]);
     }
 
+    #[Route('/brouillons', name: 'app_recette_drafts', methods: ['GET'])]
+    #[IsGranted('ROLE_CUISINIER')]
+    public function drafts(RecetteRepository $recetteRepository): Response
+    {
+        $recettes = $recetteRepository->findBy(['publiee' => false, 'auteur' => $this->getUser()]);
+
+        return $this->render('recette/drafts.html.twig', [
+            'recettes' => $recettes,
+        ]);
+    }
+
+    #[Route('/{id}/publier', name: 'app_recette_publish', methods: ['POST'])]
+    public function publish(Request $request, Recette $recette, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted(RecetteVoter::PUBLISH, $recette);
+
+        if ($this->isCsrfTokenValid('publish' . $recette->getId(), $request->request->get('_token'))) {
+            $recette->setPubliee(true);
+            $entityManager->flush();
+            $this->addFlash('success', 'Recette publiée avec succès.');
+        }
+
+        return $this->redirectToRoute('app_recette_drafts', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/{id}/depublier', name: 'app_recette_unpublish', methods: ['POST'])]
+    public function unpublish(Request $request, Recette $recette, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted(RecetteVoter::UNPUBLISH, $recette);
+
+        if ($this->isCsrfTokenValid('unpublish' . $recette->getId(), $request->request->get('_token'))) {
+            $recette->setPubliee(false);
+            $entityManager->flush();
+            $this->addFlash('success', 'Recette déplacée dans les brouillons.');
+        }
+
+        return $this->redirectToRoute('app_recette_index', [], Response::HTTP_SEE_OTHER);
+    }
+
     #[Route('/{id}/edit', name: 'app_recette_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Recette $recette, EntityManagerInterface $entityManager, FileUploader $fileUploader): Response
     {
+        $this->denyAccessUnlessGranted(RecetteVoter::EDIT, $recette);
+
         $form = $this->createForm(RecetteType::class, $recette);
         $form->handleRequest($request);
 
@@ -88,7 +149,9 @@ final class RecetteController extends AbstractController
     #[Route('/{id}', name: 'app_recette_delete', methods: ['POST'])]
     public function delete(Request $request, Recette $recette, EntityManagerInterface $entityManager, FileUploader $fileUploader): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$recette->getId(), $request->getPayload()->getString('_token'))) {
+        $this->denyAccessUnlessGranted(RecetteVoter::DELETE, $recette);
+
+        if ($this->isCsrfTokenValid('delete' . $recette->getId(), $request->getPayload()->getString('_token'))) {
             $fileUploader->remove($recette->getImageName());
             $entityManager->remove($recette);
             $entityManager->flush();

@@ -4,14 +4,18 @@
 
 {% block body %}
 
-<h2>Modifier catégorie</h2>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="mb-5 text-center">
+            <h1 class="fw-bold">
+                <i class="bi bi-pencil-square"></i>
+                Modifier la catégorie
+            </h1>
+            <p class="text-muted">Modifiez les informations de cette catégorie.</p>
+        </div>
 
-{{ form_start(form) }}
-    {{ form_widget(form) }}
-
-    <button class="btn btn-main mt-3">
-        Modifier
-    </button>
-{{ form_end(form) }}
+        {{ include('categorie_recette/_form.html.twig', {button_label: 'Mettre à jour'}) }}
+    </div>
+</div>
 
 {% endblock %}

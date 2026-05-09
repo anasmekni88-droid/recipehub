@@ -4,9 +4,12 @@ namespace App\Form;
 
 use App\Entity\Recette;
 use App\Entity\CategorieRecette;
+use App\Entity\TagRecette;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -14,6 +17,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
+use App\Form\IngredientType;
 
 class RecetteType extends AbstractType
 {
@@ -36,6 +40,15 @@ class RecetteType extends AbstractType
                     'placeholder' => 'Décrivez brièvement votre recette...',
                     'rows' => 3
                 ]
+            ])
+            //Ingrediant
+            ->add('ingredients', CollectionType::class, [
+                'entry_type' => IngredientType::class,
+                'allow_add' => true,
+                'allow_delete' => true,
+                'by_reference' => false,
+                'label' => 'Ingrédients',
+                'prototype' => true
             ])
 
             // 👨‍🍳 INSTRUCTIONS
@@ -87,9 +100,20 @@ class RecetteType extends AbstractType
             // 📂 CATEGORY
             ->add('categorie', EntityType::class, [
                 'class' => CategorieRecette::class,
-                'choice_label' => 'nom',
+                'choice_label' => fn(CategorieRecette $c) => ($c->getIcone() ?: '📂') . ' ' . $c->getNom(),
                 'label' => 'Catégorie',
                 'placeholder' => 'Choisir une catégorie'
+            ])
+
+            // 🏷 TAGS
+            ->add('tags', EntityType::class, [
+                'class' => TagRecette::class,
+                'choice_label' => 'nom',
+                'multiple' => true,
+                'expanded' => true,
+                'label' => 'Tags',
+                'required' => false,
+                'attr' => ['class' => 'd-flex flex-wrap gap-2'],
             ])
 
             // 🖼 IMAGE
@@ -104,6 +128,12 @@ class RecetteType extends AbstractType
                         mimeTypesMessage: 'Veuillez uploader une image valide (jpg, png, webp)',
                     )
                 ],
+            ])
+
+            // 📢 PUBLICATION
+            ->add('publiee', CheckboxType::class, [
+                'label' => 'Publier maintenant',
+                'required' => false,
             ]);
     }
 

@@ -4,106 +4,110 @@
 
 {% block body %}
 
-<div class="d-flex justify-content-between align-items-center mb-5">
+{% for message in app.flashes('success') %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i> {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+{% endfor %}
 
+<div class="d-flex justify-content-between align-items-center mb-5">
     <div>
         <h2 class="section-title mb-1">
             <i class="bi bi-journal-richtext"></i>
             Nos Recettes
         </h2>
-
         <p class="text-muted">
             Découvrez les meilleures recettes de notre communauté.
         </p>
     </div>
-
-    <a href="{{ path('app_recette_new') }}" class="btn btn-main">
-        <i class="bi bi-plus-circle"></i>
-        Ajouter une recette
-    </a>
-
+    {% if is_granted('ROLE_CUISINIER') %}
+        <a href="{{ path('app_recette_new') }}" class="btn btn-main">
+            <i class="bi bi-plus-circle"></i>
+            Ajouter une recette
+        </a>
+    {% endif %}
 </div>
 
 <div class="row g-4">
-
     {% for recette in recettes %}
-
         <div class="col-md-6 col-lg-4">
-
             <div class="card recipe-card h-100">
-
-                <img
-                    src="{{ recette.imageName ? asset('uploads/recettes/' ~ recette.imageName) : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000' }}"
-                    class="card-img-top"
-                    alt="{{ recette.titre }}"
-                    style="height: 220px; object-fit: cover;"
-                >
+                {% if recette.imageName %}
+                    <img src="{{ asset('uploads/recettes/' ~ recette.imageName) }}"
+                         class="card-img-top"
+                         alt="{{ recette.titre }}"
+                         style="height: 220px; object-fit: cover;">
+                {% else %}
+                    <div class="d-flex align-items-center justify-content-center bg-light"
+                         style="height: 220px; font-size: 4rem;">
+                        {{ recette.categorie.icone ?: '🍽' }}
+                    </div>
+                {% endif %}
 
                 <div class="card-body d-flex flex-column">
-
                     <div class="d-flex justify-content-between align-items-center mb-2">
-
-                        <span class="badge badge-difficulty">
-                            {{ recette.difficulte }}
-                        </span>
-
+                        <div class="d-flex gap-1 flex-wrap">
+                            <span class="badge badge-difficulty">{{ recette.difficulte }}</span>
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Publiée</span>
+                        </div>
                         <small class="recipe-meta">
-                            <i class="bi bi-clock"></i>
-                            {{ recette.tempsPreparation }} min
+                            <i class="bi bi-clock"></i> {{ recette.tempsPreparation }} min
                         </small>
-
                     </div>
 
-                    <h5 class="recipe-title">
-                        {{ recette.titre }}
-                    </h5>
+                    <h5 class="recipe-title">{{ recette.titre }}</h5>
+
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            {{ recette.categorie.icone ?: '📂' }} {{ recette.categorie.nom }}
+                        </small>
+                    </div>
+
+                    {% if recette.tags is not empty %}
+                        <div class="mb-2 d-flex flex-wrap gap-1">
+                            {% for tag in recette.tags %}
+                                <span class="badge" style="background-color: {{ tag.couleur }}; color: #fff;">
+                                    {{ tag.nom }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
 
                     <p class="text-muted small">
                         {{ recette.description|slice(0, 100) }}...
                     </p>
 
                     <div class="mt-auto">
-
                         <div class="d-flex justify-content-between align-items-center">
-
                             <small class="recipe-meta">
-                                <i class="bi bi-people"></i>
-                                {{ recette.nbPersonnes }} personnes
+                                <i class="bi bi-people"></i> {{ recette.nbPersonnes }} personnes
                             </small>
-
-                            <a href="{{ path('app_recette_show', {'id': recette.id}) }}"
-                               class="btn btn-sm btn-dark">
-                                Voir plus
-                            </a>
-
+                            <div class="d-flex gap-2">
+                                <a href="{{ path('app_recette_show', {'id': recette.id}) }}"
+                                   class="btn btn-sm btn-dark">Voir plus</a>
+                                {% if is_granted('unpublish', recette) %}
+                                    <form method="post" action="{{ path('app_recette_unpublish', {'id': recette.id}) }}" style="display:inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('unpublish' ~ recette.id) }}">
+                                        <button class="btn btn-sm btn-outline-secondary" title="Mettre en brouillon">
+                                            <i class="bi bi-archive"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     {% else %}
-
         <div class="col-12">
-
             <div class="alert alert-warning text-center p-5">
-
                 <h4>Aucune recette trouvée</h4>
-
-                <p>
-                    Commencez par ajouter votre première recette.
-                </p>
-
+                <p>Commencez par ajouter votre première recette.</p>
             </div>
-
         </div>
-
     {% endfor %}
-
 </div>
 
 {% endblock %}
