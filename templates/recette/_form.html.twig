@@ -1,0 +1,76 @@
+{{ form_start(form) }}
+
+<div class="card border-0 shadow-lg rounded-4">
+
+    <div class="card-body p-5">
+
+        <div class="row g-4">
+
+            <div class="col-md-12">
+                {{ form_label(form.titre, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.titre, {'attr': {'class': 'form-control form-control-lg'}}) }}
+            </div>
+
+            <div class="col-md-12">
+                {{ form_label(form.description, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 3}}) }}
+            </div>
+
+            <div class="col-md-12">
+                {{ form_label(form.instructions, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.instructions, {'attr': {'class': 'form-control', 'rows': 8}}) }}
+            </div>
+
+            <div class="col-md-4">
+                {{ form_label(form.tempsPreparation, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.tempsPreparation, {'attr': {'class': 'form-control'}}) }}
+            </div>
+
+            <div class="col-md-4">
+                {{ form_label(form.tempsCuisson, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.tempsCuisson, {'attr': {'class': 'form-control'}}) }}
+            </div>
+
+            <div class="col-md-4">
+                {{ form_label(form.nbPersonnes, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.nbPersonnes, {'attr': {'class': 'form-control'}}) }}
+            </div>
+
+            <div class="col-md-6">
+                {{ form_label(form.difficulte, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.difficulte, {'attr': {'class': 'form-select'}}) }}
+            </div>
+
+            <div class="col-md-6">
+                {{ form_label(form.categorie, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.categorie, {'attr': {'class': 'form-select'}}) }}
+            </div>
+
+            <div class="col-md-12">
+                {{ form_label(form.imageFile, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.imageFile, {'attr': {'class': 'form-control'}}) }}
+                {% if form.vars.data.imageName %}
+                    <div class="mt-2">
+                        <img src="{{ asset('uploads/recettes/' ~ form.vars.data.imageName) }}"
+                             alt="Image actuelle"
+                             style="height: 100px; object-fit: cover; border-radius: 8px;">
+                        <small class="text-muted d-block">Image actuelle</small>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div class="mt-5 d-flex gap-3">
+
+            <button class="btn btn-main btn-lg">
+                <i class="bi bi-check-circle"></i>
+                Enregistrer
+            </button>
+
+            <a href="{{ path('app_recette_index') }}" class="btn btn-dark btn-lg">
+                Retour
+            </a>
+
+        </div>
+{{ form_end(form) }}

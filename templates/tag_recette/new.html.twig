@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Tag{% endblock %}
+
+{% block body %}
+
+<h1>➕ Create Tag</h1>
+
+<div class="card p-4 shadow-sm">
+    {{ include('tag_recette/_form.html.twig') }}
+</div>
+
+<a href="{{ path('app_tag_recette_index') }}">← back to list</a>
+
+{% endblock %}

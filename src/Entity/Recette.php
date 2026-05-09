@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: RecetteRepository::class)]
 class Recette
@@ -46,9 +48,11 @@ class Recette
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $imageName = null;
 
+    private ?File $imageFile = null;
+
     #[ORM\ManyToOne(inversedBy: 'recettes')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?user $auteur = null;
+    private ?User $auteur = null;
 
     #[ORM\ManyToOne(inversedBy: 'recettes')]
     #[ORM\JoinColumn(nullable: false)]
@@ -63,6 +67,8 @@ class Recette
     public function __construct()
     {
         $this->tags = new ArrayCollection();
+        $this->dateCreation = new \DateTimeImmutable();
+        $this->publiee = false;
     }
 
     public function getId(): ?int
@@ -190,12 +196,29 @@ class Recette
         return $this;
     }
 
-    public function getAuteur(): ?user
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
+    }
+
+    public function setImageFile(?File $imageFile): static
+    {
+        $this->imageFile = $imageFile;
+
+        return $this;
+    }
+
+    public function getImagePath(): ?string
+    {
+        return $this->imageName ? 'uploads/recettes/' . $this->imageName : null;
+    }
+
+    public function getAuteur(): ?User
     {
         return $this->auteur;
     }
 
-    public function setAuteur(?user $auteur): static
+    public function setAuteur(?User $auteur): static
     {
         $this->auteur = $auteur;
 
