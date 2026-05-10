@@ -45,6 +45,11 @@ final class RecetteController extends AbstractController
             'recettes' => $recetteRepository->findByFilters($titre, $cat, $difficulte, $tag),
             'categories' => $categorieRecetteRepository->findAll(),
             'tags' => $tagRecetteRepository->findAll(),
+            'stats' => [
+                'total_publiees' => $this->analyser->getTotalRecettesPubliees(),
+                'par_categorie' => $this->analyser->getRecettesParCategorie(),
+                'moyenne_ingredients' => $this->analyser->getMoyenneIngredients(),
+            ],
         ]);
     }
 
@@ -154,29 +159,20 @@ final class RecetteController extends AbstractController
         return $this->redirectToRoute('app_recette_drafts', [], Response::HTTP_SEE_OTHER);
     }
 
-    #[Route('/{id}/depublier', name: 'app_recette_unpublish', methods: ['POST'])]
-    public function unpublish(Request $request, Recette $recette, EntityManagerInterface $entityManager): Response
-    {
-        $this->denyAccessUnlessGranted(RecetteVoter::UNPUBLISH, $recette);
-
-        if ($this->isCsrfTokenValid('unpublish' . $recette->getId(), $request->request->get('_token'))) {
-            $recette->setPubliee(false);
-            $entityManager->flush();
-            $this->addFlash('success', 'Recette déplacée dans les brouillons.');
-        }
-
-        return $this->redirectToRoute('app_recette_index', [], Response::HTTP_SEE_OTHER);
-    }
-
     #[Route('/{id}/edit', name: 'app_recette_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Recette $recette, EntityManagerInterface $entityManager, FileUploader $fileUploader): Response
     {
         $this->denyAccessUnlessGranted(RecetteVoter::EDIT, $recette);
 
+        $wasPublished = $recette->isPubliee();
         $form = $this->createForm(RecetteType::class, $recette);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            if ($wasPublished) {
+                $recette->setPubliee(true);
+            }
+
             $imageFile = $form->get('imageFile')->getData();
             if ($imageFile) {
                 $fileUploader->remove($recette->getImageName());

@@ -123,11 +123,11 @@
                     </form>
                 {% endif %}
 
-                {% if is_granted('unpublish', recette) and recette.publiee %}
-                    <form method="post" action="{{ path('app_recette_unpublish', {'id': recette.id}) }}" style="display:inline-block">
-                        <input type="hidden" name="_token" value="{{ csrf_token('unpublish' ~ recette.id) }}">
-                        <button class="btn btn-secondary">
-                            <i class="bi bi-archive"></i> Mettre en brouillon
+                {% if is_granted('delete', recette) %}
+                    <form method="post" action="{{ path('app_recette_delete', {'id': recette.id}) }}" style="display:inline-block" onsubmit="return confirmDelete(event, '{{ recette.titre }}')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ recette.id) }}">
+                        <button class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Supprimer
                         </button>
                     </form>
                 {% endif %}

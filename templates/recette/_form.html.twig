@@ -127,8 +127,14 @@
 
             <div class="col-md-12">
                 <div class="form-check form-switch">
-                    {{ form_widget(form.publiee, {'attr': {'class': 'form-check-input'}}) }}
-                    {{ form_label(form.publiee) }}
+                    {% if form.vars.data.publiee %}
+                        {{ form_widget(form.publiee, {'attr': {'class': 'form-check-input', 'disabled': 'disabled'}}) }}
+                        {{ form_label(form.publiee) }}
+                        <small class="text-muted d-block mt-1"><i class="bi bi-lock"></i> Le statut publié est définitif et ne peut pas être modifié.</small>
+                    {% else %}
+                        {{ form_widget(form.publiee, {'attr': {'class': 'form-check-input'}}) }}
+                        {{ form_label(form.publiee) }}
+                    {% endif %}
                 </div>
             </div>
 

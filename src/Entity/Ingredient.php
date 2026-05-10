@@ -20,7 +20,7 @@ class Ingredient
     private ?string $quantite = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Recette $recette = null;
 
     public function getId(): ?int

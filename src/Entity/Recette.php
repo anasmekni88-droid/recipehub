@@ -70,7 +70,7 @@ class Recette
     private ?File $imageFile = null;
 
     #[ORM\ManyToOne(inversedBy: 'recettes')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     #[Groups(['recette:read'])]
     private ?User $auteur = null;
 
@@ -83,6 +83,9 @@ class Recette
      * @var Collection<int, TagRecette>
      */
     #[ORM\ManyToMany(targetEntity: TagRecette::class, inversedBy: 'recettes')]
+    #[ORM\JoinTable(name: 'recette_tag_recette')]
+    #[ORM\JoinColumn(name: 'recette_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    #[ORM\InverseJoinColumn(name: 'tag_recette_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     #[Groups(['recette:read', 'recette:write'])]
     private Collection $tags;
 

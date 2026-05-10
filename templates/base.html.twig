@@ -285,6 +285,29 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+    function confirmDelete(event, titre) {
+        event.preventDefault();
+        const form = event.target;
+        Swal.fire({
+            title: 'Supprimer la recette ?',
+            text: `Êtes-vous sûr de vouloir supprimer « ${titre} » ? Cette action est irréversible.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Oui, supprimer',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+        return false;
+    }
+    </script>
 
     {% block javascripts %}{% endblock %}
 

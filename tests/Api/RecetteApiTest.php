@@ -22,7 +22,14 @@ class RecetteApiTest extends ApiTestCase
 
     public function testPostRecetteValid(): void
     {
-        $response = static::createClient()->request(
+        $client = static::createClient();
+        $catResponse = $client->request('POST', '/api/categorie_recettes', [
+            'headers' => ['content-type' => 'application/ld+json'],
+            'json' => ['nom' => 'Test Cat', 'icone' => '🍕'],
+        ]);
+        $catIri = $catResponse->toArray()['@id'];
+
+        $response = $client->request(
             'POST',
             '/api/recettes',
             [
@@ -34,7 +41,7 @@ class RecetteApiTest extends ApiTestCase
                     'tempsPreparation' => 20,
                     'nbPersonnes' => 4,
                     'difficulte' => 'facile',
-                    'categorie' => '/api/categorie_recettes/1',
+                    'categorie' => $catIri,
                 ],
             ]
         );
@@ -44,7 +51,14 @@ class RecetteApiTest extends ApiTestCase
 
     public function testPostRecetteInvalid(): void
     {
-        static::createClient()->request(
+        $client = static::createClient();
+        $catResponse = $client->request('POST', '/api/categorie_recettes', [
+            'headers' => ['content-type' => 'application/ld+json'],
+            'json' => ['nom' => 'Test Cat 2', 'icone' => '🥗'],
+        ]);
+        $catIri = $catResponse->toArray()['@id'];
+
+        $client->request(
             'POST',
             '/api/recettes',
             [
@@ -54,7 +68,7 @@ class RecetteApiTest extends ApiTestCase
                     'tempsPreparation' => 20,
                     'nbPersonnes' => 4,
                     'difficulte' => 'facile',
-                    'categorie' => '/api/categorie_recettes/1',
+                    'categorie' => $catIri,
                 ],
             ]
         );

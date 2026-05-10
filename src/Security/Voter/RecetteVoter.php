@@ -15,11 +15,10 @@ class RecetteVoter extends Voter
     public const EDIT = 'edit';
     public const DELETE = 'delete';
     public const PUBLISH = 'publish';
-    public const UNPUBLISH = 'unpublish';
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        if (in_array($attribute, [self::CREATE, self::VIEW, self::EDIT, self::DELETE, self::PUBLISH, self::UNPUBLISH])) {
+        if (in_array($attribute, [self::CREATE, self::VIEW, self::EDIT, self::DELETE, self::PUBLISH])) {
             return $subject instanceof Recette || $subject === null;
         }
 
@@ -41,7 +40,7 @@ class RecetteVoter extends Voter
         return match ($attribute) {
             self::CREATE => $isAdmin || $isCuisinier,
             self::VIEW => $recette === null || $recette->isPubliee() || $isOwner,
-            self::EDIT, self::DELETE, self::PUBLISH, self::UNPUBLISH => $isOwner,
+            self::EDIT, self::DELETE, self::PUBLISH => $isOwner,
             default => false,
         };
     }
