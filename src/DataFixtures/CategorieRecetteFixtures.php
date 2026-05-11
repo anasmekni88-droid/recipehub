@@ -11,25 +11,23 @@ class CategorieRecetteFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         $categories = [
-            ['nom' => 'Entrée', 'icone' => '🥗', 'description' => 'Les meilleures entrées'],
-            ['nom' => 'Plat', 'icone' => '🍝', 'description' => 'Plats principaux délicieux'],
-            ['nom' => 'Dessert', 'icone' => '🍰', 'description' => 'Desserts sucrés'],
-            ['nom' => 'Boisson', 'icone' => '🥤', 'description' => 'Boissons rafraîchissantes'],
-            ['nom' => 'Snack', 'icone' => '🍕', 'description' => 'Snacks rapides'],
-            ['nom' => 'Soupe', 'icone' => '🥣', 'description' => 'Soupes chaudes'],
+            ['nom' => 'Entrée', 'icone' => '🥗'],
+            ['nom' => 'Plat', 'icone' => '🍝'],
+            ['nom' => 'Dessert', 'icone' => '🍰'],
+            ['nom' => 'Boisson', 'icone' => '🥤'],
+            ['nom' => 'Snack', 'icone' => '🍕'],
+            ['nom' => 'Soupe', 'icone' => '🥣'],
         ];
 
-        foreach ($categories as $i => $data) {
+        foreach ($categories as $i => $cat) {
             $categorie = new CategorieRecette();
-            $categorie->setNom($data['nom']);
-            $categorie->setIcone($data['icone']);
-            $categorie->setDescription($data['description']);
-
+            $categorie->setNom($cat['nom']);
+            $categorie->setIcone($cat['icone']);
             $manager->persist($categorie);
-
-            $this->addReference('categorie-' . $i, $categorie);
+            
+            // On sauvegarde une référence pour lier aux recettes plus tard
+            $this->addReference('cat_' . $i, $categorie); 
         }
-
         $manager->flush();
     }
 }
