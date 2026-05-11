@@ -12,22 +12,25 @@ class TagRecetteFixtures extends Fixture
     {
         $tags = [
             ['nom' => 'Végétarien', 'couleur' => '#4CAF50'],
-            ['nom' => 'Végan', 'couleur' => '#8BC34A'],
-            ['nom' => 'Sans Gluten', 'couleur' => '#FF9800'],
-            ['nom' => 'Bio', 'couleur' => '#795548'],
-            ['nom' => 'Rapide', 'couleur' => '#F44336'],
-            ['nom' => 'Familial', 'couleur' => '#2196F3'],
-            ['nom' => 'Festif', 'couleur' => '#9C27B0'],
-            ['nom' => 'Économique', 'couleur' => '#FFEB3B'],
+            ['nom' => 'Végan', 'couleur' => '#2E7D32'],
+            ['nom' => 'Sans Gluten', 'couleur' => '#2196F3'],
+            ['nom' => 'Bio', 'couleur' => '#8D6E63'],
+            ['nom' => 'Rapide', 'couleur' => '#FF9800'],
+            ['nom' => 'Familial', 'couleur' => '#9C27B0'],
+            ['nom' => 'Festif', 'couleur' => '#E91E63'],
+            ['nom' => 'Économique', 'couleur' => '#607D8B'],
         ];
 
-        foreach ($tags as $i => $t) {
+        foreach ($tags as $i => $data) {
             $tag = new TagRecette();
-            $tag->setNom($t['nom']);
-            $tag->setCouleur($t['couleur']);
+            $tag->setNom($data['nom']);
+            $tag->setCouleur($data['couleur']);
+
             $manager->persist($tag);
-            $this->addReference('tag_' . $i, $tag);
+
+            $this->addReference('tag-' . $i, $tag);
         }
+
         $manager->flush();
     }
 }

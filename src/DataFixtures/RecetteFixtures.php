@@ -2,60 +2,91 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Ingredient;
 use App\Entity\Recette;
-use App\Entity\CategorieRecette;
 use App\Entity\User;
+use App\Entity\CategorieRecette;
 use App\Entity\TagRecette;
 use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Persistence\ObjectManager;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
 
 class RecetteFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
     {
-        $faker = Factory::create('fr_FR');
+        $faker = Factory::create();
+
         $difficultes = ['facile', 'moyen', 'difficile'];
-        $authors = ['user_admin', 'user_chef', 'user_0', 'user_1', 'user_2', 'user_3', 'user_4'];
 
-        for ($i = 0; $i < 20; $i++) {
+        for ($i = 1; $i <= 20; $i++) {
+
             $recette = new Recette();
-            $recette->setTitre($faker->sentence(4)); 
-            $recette->setDescription(str_pad($faker->paragraph(2), 35, ' ')); 
-            $recette->setInstructions($faker->text(300));
-            $recette->setTempsPreparation($faker->numberBetween(10, 60));
-            $recette->setTempsCuisson($faker->numberBetween(0, 120));
-            $recette->setDifficulte($faker->randomElement($difficultes));
-            $recette->setNbPersonnes($faker->numberBetween(1, 10));
+
+            $recette->setTitre($faker->sentence(3));
+            $recette->setDescription($faker->paragraph(2));
+            $recette->setInstructions($faker->paragraphs(3, true));
+
+            $recette->setTempsPreparation(rand(10, 60));
+            $recette->setTempsCuisson(rand(10, 120));
+
+            $recette->setDifficulte($difficultes[array_rand($difficultes)]);
+            $recette->setNbPersonnes(rand(1, 8));
+
+            $recette->setDateCreation(new \DateTimeImmutable());
+            $recette->setPubliee((bool) rand(0, 1));
             
-            $date = \DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-1 year', 'now'));
-            $recette->setDateCreation($date);
-            $recette->setPubliee($faker->boolean(80));
 
-            // CORRECTION ICI : d'abord le nom ('cat_X'), ENSUITE la classe
-            $recette->setCategorie($this->getReference('cat_' . $faker->numberBetween(0, 5), CategorieRecette::class));
-            $recette->setAuteur($this->getReference($faker->randomElement($authors), User::class));
+            // AUTHOR
+            $authorKey = rand(0, 5) === 0 ? 'user-admin' : 'user-chef';
 
-            $nbTags = $faker->numberBetween(1, 4);
-            $tagsSelectionnes = (array) array_rand(range(0, 7), $nbTags);
-            foreach ($tagsSelectionnes as $indexTag) {
-                // CORRECTION ICI : d'abord le nom, ENSUITE la classe
-                $recette->addTag($this->getReference('tag_' . $indexTag, TagRecette::class));
+            $recette->setAuteur(
+                $this->getReference($authorKey, User::class)
+            );
+
+            // CATEGORY
+            $recette->setCategorie(
+                $this->getReference(
+                    'categorie-' . rand(0, 5),
+                    CategorieRecette::class
+                )
+            );
+
+            // TAGS (1–4)
+            for ($j = 0; $j < rand(1, 4); $j++) {
+                $recette->addTag(
+                    $this->getReference(
+                        'tag-' . rand(0, 7),
+                        TagRecette::class
+                    )
+                );
+            }
+            // INGREDIENTS (1–5)
+            $ingredientNames = ['Farine', 'Sucre', 'Œufs', 'Beurre', 'Lait', 'Chocolat', 'Sel', 'Huile', 'Levure', 'Pommes'];
+            $quantites = ['500g', '200g', '3', '100g', '250ml', '150g', '1 pincée', '2 c. à soupe', '1 sachet', '4'];
+            for ($k = 0; $k < rand(1, 5); $k++) {
+                $idx = rand(0, 9);
+                $ingredient = new Ingredient();
+                $ingredient->setNom($ingredientNames[$idx]);
+                $ingredient->setQuantite($quantites[$idx]);
+                $ingredient->setRecette($recette);
+                $manager->persist($ingredient);
             }
 
             $manager->persist($recette);
+            $this->addReference('recette-' . $i, $recette);
         }
 
         $manager->flush();
     }
 
-    public function getDependencies(): array
-    {
-        return [
-            CategorieRecetteFixtures::class,
-            TagRecetteFixtures::class,
-            UserFixtures::class,
-        ];
-    }
+  public function getDependencies(): array
+{
+    return [
+        UserFixtures::class,
+        CategorieRecetteFixtures::class,
+        TagRecetteFixtures::class,
+    ];
+}
 }

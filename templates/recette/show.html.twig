@@ -26,6 +26,7 @@
                 {% else %}
                     <span class="badge bg-warning text-dark fs-6"><i class="bi bi-pencil"></i> Brouillon</span>
                 {% endif %}
+                <span class="badge badge-difficulty fs-6">{{ difficulty_stars(recette.difficulte) }}</span>
             </div>
             <h3>🥕 Ingrédients</h3>
 
@@ -63,22 +64,26 @@
                 </div>
             {% endif %}
 
+            <div class="d-flex align-items-center gap-3 mb-4 text-muted">
+                <span>🕒 {{ recette.dateCreation|time_ago }}</span>
+            </div>
+
             <div class="row g-3 mb-4">
                 <div class="col-md-4">
                     <div class="bg-light p-3 rounded-4 text-center">
-                        <p class="mb-0 text-muted small">Préparation</p>
-                        <strong>{{ recette.tempsPreparation }} min</strong>
+                        <p class="mb-0 text-muted small">⏱️ Préparation</p>
+                        <strong>{{ recette.tempsPreparation|cooking_time_format }}</strong>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="bg-light p-3 rounded-4 text-center">
-                        <p class="mb-0 text-muted small">Cuisson</p>
-                        <strong>{{ recette.tempsCuisson ?: '—' }} min</strong>
+                        <p class="mb-0 text-muted small">🍳 Cuisson</p>
+                        <strong>{{ recette.tempsCuisson|cooking_time_format }}</strong>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="bg-light p-3 rounded-4 text-center">
-                        <p class="mb-0 text-muted small">Personnes</p>
+                        <p class="mb-0 text-muted small">👥 Personnes</p>
                         <strong>{{ recette.nbPersonnes }}</strong>
                     </div>
                 </div>
@@ -118,11 +123,11 @@
                     </form>
                 {% endif %}
 
-                {% if is_granted('unpublish', recette) and recette.publiee %}
-                    <form method="post" action="{{ path('app_recette_unpublish', {'id': recette.id}) }}" style="display:inline-block">
-                        <input type="hidden" name="_token" value="{{ csrf_token('unpublish' ~ recette.id) }}">
-                        <button class="btn btn-secondary">
-                            <i class="bi bi-archive"></i> Mettre en brouillon
+                {% if is_granted('delete', recette) %}
+                    <form method="post" action="{{ path('app_recette_delete', {'id': recette.id}) }}" style="display:inline-block" onsubmit="return confirmDelete(event, '{{ recette.titre }}')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ recette.id) }}">
+                        <button class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Supprimer
                         </button>
                     </form>
                 {% endif %}

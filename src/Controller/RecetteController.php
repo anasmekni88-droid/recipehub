@@ -2,9 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\CategorieRecette;
 use App\Entity\Recette;
+use App\Entity\TagRecette;
 use App\Form\RecetteType;
+use App\Repository\CategorieRecetteRepository;
 use App\Repository\RecetteRepository;
+use App\Repository\TagRecetteRepository;
 use App\Security\Voter\RecetteVoter;
 use App\Service\FileUploader;
 use App\Service\RecetteAnalyser;
@@ -23,19 +27,69 @@ final class RecetteController extends AbstractController
     ) {}
 
     #[Route(name: 'app_recette_index', methods: ['GET'])]
-    public function index(RecetteRepository $recetteRepository): Response
-    {
+    public function index(
+        Request $request,
+        RecetteRepository $recetteRepository,
+        CategorieRecetteRepository $categorieRecetteRepository,
+        TagRecetteRepository $tagRecetteRepository,
+    ): Response {
+        $titre = $request->query->get('titre');
+        $categorieId = $request->query->get('categorie');
+        $difficulte = $request->query->get('difficulte');
+        $tagId = $request->query->get('tag');
+
+        $cat = $categorieId ? $categorieRecetteRepository->find($categorieId) : null;
+        $tag = $tagId ? $tagRecetteRepository->find($tagId) : null;
+
         return $this->render('recette/index.html.twig', [
-            'recettes' => $recetteRepository->findPublished(),
+            'recettes' => $recetteRepository->findByFilters($titre, $cat, $difficulte, $tag),
+            'categories' => $categorieRecetteRepository->findAll(),
+            'tags' => $tagRecetteRepository->findAll(),
+            'stats' => [
+                'total_publiees' => $this->analyser->getTotalRecettesPubliees(),
+                'par_categorie' => $this->analyser->getRecettesParCategorie(),
+                'moyenne_ingredients' => $this->analyser->getMoyenneIngredients(),
+            ],
         ]);
     }
 
     #[Route('/mes-recettes', name: 'app_recette_mes_recettes', methods: ['GET'])]
     #[IsGranted('ROLE_CUISINIER')]
-    public function mesRecettes(RecetteRepository $recetteRepository): Response
-    {
+    public function mesRecettes(
+        Request $request,
+        RecetteRepository $recetteRepository,
+        CategorieRecetteRepository $categorieRecetteRepository,
+        TagRecetteRepository $tagRecetteRepository,
+    ): Response {
+        $titre = $request->query->get('titre');
+        $categorieId = $request->query->get('categorie');
+        $difficulte = $request->query->get('difficulte');
+        $tagId = $request->query->get('tag');
+
+        $cat = $categorieId ? $categorieRecetteRepository->find($categorieId) : null;
+        $tag = $tagId ? $tagRecetteRepository->find($tagId) : null;
+
+        $qb = $recetteRepository->createQueryBuilder('r')
+            ->andWhere('r.auteur = :auteur')->setParameter('auteur', $this->getUser())
+            ->andWhere('r.publiee = true');
+
+        if ($titre) {
+            $qb->andWhere('r.titre LIKE :titre')->setParameter('titre', "%$titre%");
+        }
+        if ($cat) {
+            $qb->andWhere('r.categorie = :cat')->setParameter('cat', $cat);
+        }
+        if ($difficulte) {
+            $qb->andWhere('r.difficulte = :diff')->setParameter('diff', $difficulte);
+        }
+        if ($tag) {
+            $qb->innerJoin('r.tags', 't')->andWhere('t = :tag')->setParameter('tag', $tag);
+        }
+
         return $this->render('recette/index.html.twig', [
-            'recettes' => $recetteRepository->findBy(['auteur' => $this->getUser(), 'publiee' => true]),
+            'recettes' => $qb->orderBy('r.dateCreation', 'DESC')->getQuery()->getResult(),
+            'categories' => $categorieRecetteRepository->findAll(),
+            'tags' => $tagRecetteRepository->findAll(),
         ]);
     }
 
@@ -105,29 +159,20 @@ final class RecetteController extends AbstractController
         return $this->redirectToRoute('app_recette_drafts', [], Response::HTTP_SEE_OTHER);
     }
 
-    #[Route('/{id}/depublier', name: 'app_recette_unpublish', methods: ['POST'])]
-    public function unpublish(Request $request, Recette $recette, EntityManagerInterface $entityManager): Response
-    {
-        $this->denyAccessUnlessGranted(RecetteVoter::UNPUBLISH, $recette);
-
-        if ($this->isCsrfTokenValid('unpublish' . $recette->getId(), $request->request->get('_token'))) {
-            $recette->setPubliee(false);
-            $entityManager->flush();
-            $this->addFlash('success', 'Recette déplacée dans les brouillons.');
-        }
-
-        return $this->redirectToRoute('app_recette_index', [], Response::HTTP_SEE_OTHER);
-    }
-
     #[Route('/{id}/edit', name: 'app_recette_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Recette $recette, EntityManagerInterface $entityManager, FileUploader $fileUploader): Response
     {
         $this->denyAccessUnlessGranted(RecetteVoter::EDIT, $recette);
 
+        $wasPublished = $recette->isPubliee();
         $form = $this->createForm(RecetteType::class, $recette);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            if ($wasPublished) {
+                $recette->setPubliee(true);
+            }
+
             $imageFile = $form->get('imageFile')->getData();
             if ($imageFile) {
                 $fileUploader->remove($recette->getImageName());

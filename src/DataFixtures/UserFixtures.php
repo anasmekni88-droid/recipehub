@@ -16,35 +16,37 @@ class UserFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        $faker = Factory::create('fr_FR');
+        $faker = Factory::create();
 
-        // Admin
+        // ADMIN
         $admin = new User();
         $admin->setEmail('admin@recipehub.com');
+        $admin->setPseudo('admin');
         $admin->setRoles(['ROLE_ADMIN']);
         $admin->setPassword($this->hasher->hashPassword($admin, 'admin123'));
-        $admin->setPseudo('Admin');
         $manager->persist($admin);
-        $this->addReference('user_admin', $admin);
+        $this->addReference('user-admin', $admin);
 
-        // Chef
+        // CHEF
         $chef = new User();
         $chef->setEmail('chef@recipehub.com');
+        $chef->setPseudo('chef');
         $chef->setRoles(['ROLE_CUISINIER']);
         $chef->setPassword($this->hasher->hashPassword($chef, 'chef123'));
-        $chef->setPseudo('Chef Master');
         $manager->persist($chef);
-        $this->addReference('user_chef', $chef);
+        $this->addReference('user-chef', $chef);
 
-        // 5 Utilisateurs normaux
-        for ($i = 0; $i < 5; $i++) {
+        // USERS (IMPORTANT: unique emails ONLY)
+        for ($i = 1; $i <= 5; $i++) {
             $user = new User();
-            $user->setEmail($faker->email());
-            $user->setRoles(['ROLE_USER']);
-            $user->setPassword($this->hasher->hashPassword($user, 'user123'));
+
+            $user->setEmail($faker->unique()->safeEmail());
             $user->setPseudo($faker->userName());
+            $user->setRoles(['ROLE_USER']);
+            $user->setPassword($this->hasher->hashPassword($user, 'password'));
+
             $manager->persist($user);
-            $this->addReference('user_' . $i, $user);
+            $this->addReference('user-' . $i, $user);
         }
 
         $manager->flush();
