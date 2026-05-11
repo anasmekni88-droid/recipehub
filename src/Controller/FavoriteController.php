@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\RecetteRepository;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -51,7 +52,7 @@ final class FavoriteController extends AbstractController
     }
 
     #[Route(name: 'app_favorite_index', methods: ['GET'])]
-    public function index(Request $request, RecetteRepository $recetteRepository): Response
+    public function index(Request $request, RecetteRepository $recetteRepository, PaginatorInterface $paginator): Response
     {
         $session = $request->getSession();
         $favoriteIds = $session->get('favorites', []);
@@ -64,7 +65,7 @@ final class FavoriteController extends AbstractController
         }
 
         return $this->render('favorite/index.html.twig', [
-            'recettes' => $recettes,
+            'recettes' => $paginator->paginate($recettes, $request->query->getInt('page', 1), 9),
         ]);
     }
 }

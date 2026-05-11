@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: #f8f9fa; border-radius: 8px; padding: 24px;">
+        <h1 style="color: #e74c3c; margin-top: 0;">Nouvelle recette publiée !</h1>
+
+        <h2 style="color: #2c3e50;">{{ recette.titre }}</h2>
+
+        <p style="color: #555;">{{ recette.description }}</p>
+
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Difficulté</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{ recette.difficulte }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Temps de préparation</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{ recette.tempsPreparation }} min</td>
+            </tr>
+            {% if recette.tempsCuisson %}
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Temps de cuisson</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{ recette.tempsCuisson }} min</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Nombre de personnes</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{ recette.nbPersonnes }}</td>
+            </tr>
+        </table>
+
+        <a href="{{ url('app_recette_show', { id: recette.id }) }}"
+           style="display: inline-block; padding: 12px 24px; background: #e74c3c; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;">
+            Voir la recette
+        </a>
+    </div>
+</body>
+</html>

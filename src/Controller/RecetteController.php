@@ -11,8 +11,10 @@ use App\Repository\RecetteRepository;
 use App\Repository\TagRecetteRepository;
 use App\Security\Voter\RecetteVoter;
 use App\Service\FileUploader;
+use App\Service\NewRecetteNotification;
 use App\Service\RecetteAnalyser;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,6 +26,7 @@ final class RecetteController extends AbstractController
 {
     public function __construct(
         private RecetteAnalyser $analyser,
+        private NewRecetteNotification $newRecetteNotification,
     ) {}
 
     #[Route(name: 'app_recette_index', methods: ['GET'])]
@@ -32,6 +35,7 @@ final class RecetteController extends AbstractController
         RecetteRepository $recetteRepository,
         CategorieRecetteRepository $categorieRecetteRepository,
         TagRecetteRepository $tagRecetteRepository,
+        PaginatorInterface $paginator,
     ): Response {
         $titre = $request->query->get('titre');
         $categorieId = $request->query->get('categorie');
@@ -41,8 +45,10 @@ final class RecetteController extends AbstractController
         $cat = $categorieId ? $categorieRecetteRepository->find($categorieId) : null;
         $tag = $tagId ? $tagRecetteRepository->find($tagId) : null;
 
+        $queryBuilder = $recetteRepository->findByFiltersQueryBuilder($titre, $cat, $difficulte, $tag);
+
         return $this->render('recette/index.html.twig', [
-            'recettes' => $recetteRepository->findByFilters($titre, $cat, $difficulte, $tag),
+            'recettes' => $paginator->paginate($queryBuilder, $request->query->getInt('page', 1), 9),
             'categories' => $categorieRecetteRepository->findAll(),
             'tags' => $tagRecetteRepository->findAll(),
             'stats' => [
@@ -60,6 +66,7 @@ final class RecetteController extends AbstractController
         RecetteRepository $recetteRepository,
         CategorieRecetteRepository $categorieRecetteRepository,
         TagRecetteRepository $tagRecetteRepository,
+        PaginatorInterface $paginator,
     ): Response {
         $titre = $request->query->get('titre');
         $categorieId = $request->query->get('categorie');
@@ -87,7 +94,7 @@ final class RecetteController extends AbstractController
         }
 
         return $this->render('recette/index.html.twig', [
-            'recettes' => $qb->orderBy('r.dateCreation', 'DESC')->getQuery()->getResult(),
+            'recettes' => $paginator->paginate($qb->orderBy('r.dateCreation', 'DESC'), $request->query->getInt('page', 1), 9),
             'categories' => $categorieRecetteRepository->findAll(),
             'tags' => $tagRecetteRepository->findAll(),
         ]);
@@ -113,6 +120,7 @@ final class RecetteController extends AbstractController
             $entityManager->flush();
 
             if ($recette->isPubliee()) {
+                $this->newRecetteNotification->notifyUsers($recette);
                 return $this->redirectToRoute('app_recette_index', [], Response::HTTP_SEE_OTHER);
             }
             return $this->redirectToRoute('app_recette_drafts', [], Response::HTTP_SEE_OTHER);
@@ -136,12 +144,16 @@ final class RecetteController extends AbstractController
 
     #[Route('/brouillons', name: 'app_recette_drafts', methods: ['GET'])]
     #[IsGranted('ROLE_CUISINIER')]
-    public function drafts(RecetteRepository $recetteRepository): Response
+    public function drafts(Request $request, RecetteRepository $recetteRepository, PaginatorInterface $paginator): Response
     {
-        $recettes = $recetteRepository->findBy(['publiee' => false, 'auteur' => $this->getUser()]);
+        $qb = $recetteRepository->createQueryBuilder('r')
+            ->andWhere('r.publiee = false')
+            ->andWhere('r.auteur = :auteur')
+            ->setParameter('auteur', $this->getUser())
+            ->orderBy('r.dateCreation', 'DESC');
 
         return $this->render('recette/drafts.html.twig', [
-            'recettes' => $recettes,
+            'recettes' => $paginator->paginate($qb, $request->query->getInt('page', 1), 9),
         ]);
     }
 
@@ -153,6 +165,7 @@ final class RecetteController extends AbstractController
         if ($this->isCsrfTokenValid('publish' . $recette->getId(), $request->request->get('_token'))) {
             $recette->setPubliee(true);
             $entityManager->flush();
+            $this->newRecetteNotification->notifyUsers($recette);
             $this->addFlash('success', 'Recette publiée avec succès.');
         }
 
@@ -175,7 +188,9 @@ final class RecetteController extends AbstractController
 
             $imageFile = $form->get('imageFile')->getData();
             if ($imageFile) {
-                $fileUploader->remove($recette->getImageName());
+                if ($recette->getImageName()) {
+                    $fileUploader->remove($recette->getImageName());
+                }
                 $imageName = $fileUploader->upload($imageFile);
                 $recette->setImageName($imageName);
             }
@@ -197,7 +212,9 @@ final class RecetteController extends AbstractController
         $this->denyAccessUnlessGranted(RecetteVoter::DELETE, $recette);
 
         if ($this->isCsrfTokenValid('delete' . $recette->getId(), $request->getPayload()->getString('_token'))) {
-            $fileUploader->remove($recette->getImageName());
+            if ($recette->getImageName()) {
+                $fileUploader->remove($recette->getImageName());
+            }
             $entityManager->remove($recette);
             $entityManager->flush();
         }

@@ -113,6 +113,8 @@
     {% endfor %}
 </div>
 
+{{ knp_pagination_render(recettes) }}
+
 <div class="mt-4">
     <a href="{{ path('app_recette_index') }}" class="btn btn-dark">
         <i class="bi bi-arrow-left"></i> Voir les recettes publiées

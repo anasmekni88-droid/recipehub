@@ -1,13 +1,13 @@
 <form method="post"
       action="{{ path('app_tag_recette_delete', {'id': tag_recette.id}) }}"
-      onsubmit="return confirm('Are you sure?');"
+      onsubmit="return confirmAction(event, 'Supprimer le tag ?', 'Êtes-vous sûr de vouloir supprimer ce tag ? Cette action est irréversible.');"
       style="display:inline-block">
 
     <input type="hidden" name="_token"
            value="{{ csrf_token('delete' ~ tag_recette.id) }}">
 
     <button class="btn btn-sm btn-danger">
-        Delete
+        <i class="bi bi-trash"></i> Supprimer
     </button>
 
 </form>
